@@ -2,7 +2,7 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Form, Question, Response1, Answer
 from .serializers import FormSerializer, QuestionSerializer, ResponseSerializer, AnswerSerializer
-
+from collections import Counter
 
 from rest_framework.views import APIView
 
@@ -69,3 +69,76 @@ class AdminFormsView(APIView):
         forms = Form.objects.filter(created_by=request.user)  # Filter forms by admin user
         serializer = FormSerializer(forms, many=True)
         return Response(serializer.data)
+
+
+class AnalyticsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, form_id):
+        # Fetch all responses for the given form
+        responses = Response1.objects.filter(form_id=form_id)
+
+        analytics = {}
+
+        # Fetch all questions related to the form
+        questions = Question.objects.filter(form_id=form_id)
+
+        for question in questions:
+            if question.type == 'text':
+                answers = Answer.objects.filter(question=question)
+                words = []
+
+                for answer in answers:
+                    words.extend(answer.answer.split())  # Split the text into words
+
+                # Count the top 5 most common words
+                word_count = Counter(word.lower() for word in words if len(word) >= 5)
+                top_words = word_count.most_common(5)
+                others = sum([count for word, count in word_count.items() if word not in dict(top_words)])
+
+                analytics[question.id] = {
+                    'type': question.type,
+                    'data': {
+                        'top_words': [{'word': word, 'count': count} for word, count in top_words],
+                        'others': others
+                    }
+                }
+
+            elif question.type == 'checkbox':
+                answers = Answer.objects.filter(question=question)
+                option_combinations = []
+
+                for answer in answers:
+                    option_combinations.append(tuple(sorted(answer.answer.split(','))))
+
+                # Count the top 5 combinations of options
+                combo_count = Counter(option_combinations)
+                top_combos = combo_count.most_common(5)
+                others = sum([count for combo, count in combo_count.items() if combo not in dict(top_combos)])
+
+                analytics[question.id] = {
+                    'type': question.type,
+                    'data': {
+                        'top_combos': [{'combination': combo, 'count': count} for combo, count in top_combos],
+                        'others': others
+                    }
+                }
+
+            elif question.type == 'dropdown':
+                answers = Answer.objects.filter(question=question)
+                options = [answer.answer for answer in answers]
+
+                # Count the top 5 most selected options
+                option_count = Counter(options)
+                top_options = option_count.most_common(5)
+                others = sum([count for option, count in option_count.items() if option not in dict(top_options)])
+
+                analytics[question.id] = {
+                    'type': question.type,
+                    'data': {
+                        'top_options': [{'option': option, 'count': count} for option, count in top_options],
+                        'others': others
+                    }
+                }
+
+        return Response(analytics, status=200)
