@@ -6,15 +6,25 @@ class QuestionSerializer(serializers.ModelSerializer):
         model = Question
         fields = ['form', 'text', 'type', 'options', 'order']
 
-class ResponseSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Response1
-        fields = '__all__'
-
 class AnswerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Answer
-        fields = '__all__'
+        fields = ['question', 'answer']
+
+class ResponseSerializer(serializers.ModelSerializer):
+    answers = AnswerSerializer(many=True, write_only=True)
+
+    class Meta:
+        model = Response1
+        fields = ['id', 'submitted_at', 'form', 'answers']
+
+    def create(self, validated_data):
+        answers_data = validated_data.pop('answers')
+        response = Response1.objects.create(**validated_data)
+        for answer_data in answers_data:
+            Answer.objects.create(response=response, **answer_data)
+        return response
+
 
 class FormSerializer(serializers.ModelSerializer):
     class Meta:

@@ -1,7 +1,8 @@
 from rest_framework import viewsets, status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from .models import Form, Question, Response1, Answer
 from .serializers import FormSerializer, QuestionSerializer, ResponseSerializer, AnswerSerializer
+
 
 from rest_framework.views import APIView
 
@@ -35,6 +36,7 @@ class QuestionViewSet(viewsets.ModelViewSet):
 class ResponseViewSet(viewsets.ModelViewSet):
     queryset = Response1.objects.all()
     serializer_class = ResponseSerializer
+    permission_classes = [AllowAny]
 
 class AnswerViewSet(viewsets.ModelViewSet):
     queryset = Answer.objects.all()
