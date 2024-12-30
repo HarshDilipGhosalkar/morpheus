@@ -1,16 +1,17 @@
 
 # Form Builder Application
 
-## Overview
-
-The Form Builder Application allows users to create, submit, and analyze forms. Built using Django REST Framework for the backend and Next.js for the frontend, this application provides a platform for Admins to create forms, manage responses, and view analytics, while End Users can anonymously submit responses.
-
 ### Demo Video:
 You can watch the demo of the project here:
 
 
 [![Video Thumbnail](https://github.com/user-attachments/assets/006c992c-3280-43ec-8b93-62f1e11d5972)](https://github.com/user-attachments/assets/006c992c-3280-43ec-8b93-62f1e11d5972)
 
+
+
+## Overview
+
+The Form Builder Application allows users to create, submit, and analyze forms. Built using Django REST Framework for the backend and Next.js for the frontend, this application provides a platform for Admins to create forms, manage responses, and view analytics, while End Users can anonymously submit responses.
 
 
 ### Features:
