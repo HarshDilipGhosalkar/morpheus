@@ -7,31 +7,24 @@ from collections import Counter
 from rest_framework.views import APIView
 
 from rest_framework.response import Response
+from django.http import JsonResponse
+
 
 
 
 
 class FormQuestionsView(APIView):
-    permission_classes = [AllowAny]  # No authentication required
+    permission_classes = [AllowAny]
 
     def get(self, request, form_id):
-        try:
-            # Fetch the form with the given form_id
+        print("formId:",form_id)
+        try: 
             form = Form.objects.get(id=form_id)
-
-            # Get all questions related to this form
             questions = form.questions.all()
-
-            # Serialize the questions
             serializer = QuestionSerializer(questions, many=True)
-
-            # Return the serialized data
-            return Response(serializer.data, status=status.HTTP_200_OK)
-
+            return JsonResponse(serializer.data, safe=False)
         except Form.DoesNotExist:
-            return Response({"detail": "Form not found."}, status=status.HTTP_404_NOT_FOUND)
-
-
+            return JsonResponse({"detail": "Form not found."}, status=404)
 
 class FormViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]

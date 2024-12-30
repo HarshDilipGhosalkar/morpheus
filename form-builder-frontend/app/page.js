@@ -10,7 +10,7 @@ export default function Home() {
   useEffect(() => {
     if (isAuthenticated()) {
       // Redirect to admin forms if authenticated
-      router.push('/admin/forms');
+      router.push('/admin');
     } else {
       // Redirect to login page if not authenticated
       router.push('/login');

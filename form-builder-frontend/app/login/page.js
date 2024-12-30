@@ -13,7 +13,7 @@ export default function Login() {
     console.log("Hello");
     const data = await login(username, password);
     if (data.access) {
-      router.push('/admin/forms');
+      router.push('/admin');
     } else {
       setError('Invalid credentials');
     }
