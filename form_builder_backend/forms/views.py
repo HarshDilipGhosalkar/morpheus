@@ -11,8 +11,30 @@ from rest_framework.response import Response
 
 
 
+class FormQuestionsView(APIView):
+    permission_classes = [AllowAny]  # No authentication required
+
+    def get(self, request, form_id):
+        try:
+            # Fetch the form with the given form_id
+            form = Form.objects.get(id=form_id)
+
+            # Get all questions related to this form
+            questions = form.questions.all()
+
+            # Serialize the questions
+            serializer = QuestionSerializer(questions, many=True)
+
+            # Return the serialized data
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Form.DoesNotExist:
+            return Response({"detail": "Form not found."}, status=status.HTTP_404_NOT_FOUND)
+
+
+
 class FormViewSet(viewsets.ModelViewSet):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     queryset = Form.objects.all()
     serializer_class = FormSerializer
 
@@ -37,6 +59,13 @@ class ResponseViewSet(viewsets.ModelViewSet):
     queryset = Response1.objects.all()
     serializer_class = ResponseSerializer
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        form_id = self.request.query_params.get('form')  # Get the 'form' query parameter
+        if form_id is not None:
+            queryset = queryset.filter(form_id=form_id)  # Filter by form ID
+        return queryset
 
 class AnswerViewSet(viewsets.ModelViewSet):
     queryset = Answer.objects.all()
@@ -142,3 +171,37 @@ class AnalyticsView(APIView):
                 }
 
         return Response(analytics, status=200)
+    
+
+class SaveFormAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        data = request.data
+        form = Form.objects.create(
+            title=data.get("title"),
+            description=data.get("description"),
+            created_by=request.user,
+        )
+        for q in data.get("questions", []):
+            Question.objects.create(
+                form=form,
+                text=q.get("text"),
+                type=q.get("type"),
+                options=q.get("options", []),
+            )
+        return Response({"message": "Form saved successfully!"}, status=201)
+    
+class FormResponsesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, form_id):
+        try:
+            form = Form.objects.get(id=form_id)
+            responses = Response1.objects.filter(form=form)
+            serializer = ResponseSerializer(responses, many=True)
+            return Response(serializer.data)
+        except Form.DoesNotExist:
+            return Response({"detail": "Form not found."}, status=404)
+        except Response1.DoesNotExist:
+            return Response({"detail": "No responses found."}, status=404)  # Handle this specific case if needed

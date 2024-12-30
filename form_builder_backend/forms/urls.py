@@ -7,7 +7,9 @@ from .views import (
     AnswerViewSet,
     AdminFormsView,
     FormCreateView,
-    AnalyticsView
+    AnalyticsView,
+    FormResponsesView,
+    FormQuestionsView
 )
 
 
@@ -23,4 +25,6 @@ urlpatterns = [
     path('admin-forms/', AdminFormsView.as_view(), name='admin-forms'),
     path('create-form/', FormCreateView.as_view(), name='create-form'),  
     path('analytics/<int:form_id>/', AnalyticsView.as_view(), name='analytics'),
+    path('responses/<int:form_id>/', FormResponsesView.as_view(), name='form-responses'),
+    path('form-questions/<int:form_id>/', FormQuestionsView.as_view(), name='form-questions'),
 ]
